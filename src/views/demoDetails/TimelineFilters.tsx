@@ -81,7 +81,7 @@ export default function TimelineFilters({
       }} />
       <MultiSelect
         label={"Filter players"}
-        data={gameSummary.players.map(playerToSelectItem)}
+        data={gameSummary.players.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).map(playerToSelectItem)}
         placeholder={"Select one or more players"}
         onChange={(values) => {
           filters.playerIds = values;
