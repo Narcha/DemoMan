@@ -44,8 +44,6 @@ export default function TimelineFilters({
     visibleRounds: true,
   } as Filters);
 
-  const [regex, toggleRegex] = useToggle([true, false]);
-
   return (
     <div style={{ display: "grid" }}>
       <Switch label={"Show Killfeed"} defaultChecked={true} onChange={(event) =>{
