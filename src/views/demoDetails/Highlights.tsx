@@ -54,6 +54,8 @@ function doesHighlightIncludePlayer(
       return playerId === highlight.c.user_id;
     case "PlayerDisconnected":
       return playerId === highlight.c.user_id;
+    case "PointCaptured":
+      return highlight.c.cappers.includes(playerId);
     default:
       return true;
   }
@@ -82,7 +84,10 @@ export default function HighlightsList({ gameSummary }: TimelineProps) {
       highlights = highlights.filter(h => h.event.t !== "ChatMessage" || regex.test(h.event.c.sender.name) || regex.test(h.event.c.text));
     }
     if (!filters.visibleKillfeed) {
-      highlights = highlights.filter(h => h.event.t !== "Kill" && h.event.t !== "PointCaptured");
+      highlights = highlights.filter(h => h.event.t !== "Kill");
+    }
+    if (!filters.visibleCaptures) {
+      highlights = highlights.filter(h => h.event.t !== "PointCaptured");
     }
     if (!filters.visibleChat) {
       highlights = highlights.filter(h => h.event.t !== "ChatMessage");
@@ -95,6 +100,9 @@ export default function HighlightsList({ gameSummary }: TimelineProps) {
     }
     if (!filters.visibleRounds) {
       highlights = highlights.filter(h => !(h.event.t === "RoundStart" || h.event.t === "RoundWin" || h.event.t === "RoundStalemate"));
+    }
+    if (!filters.visibleAirshots) {
+      highlights = highlights.filter(h => !(h.event.t === "Airshot" || h.event.t === "CrossbowAirshot"));
     }
 
     setHighlights(highlights);
