@@ -1,4 +1,4 @@
-use num_derive::{ FromPrimitive, ToPrimitive };
+use num_derive::{FromPrimitive, ToPrimitive};
 
 #[derive(Debug, Default, FromPrimitive, ToPrimitive)]
 #[allow(non_camel_case_types)]

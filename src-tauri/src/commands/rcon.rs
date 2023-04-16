@@ -21,7 +21,10 @@ pub async fn send_command(command: String, state: State<'_, AppState>) -> Result
 pub async fn init_rcon(password: String, state: State<'_, AppState>) -> Result<(), ()> {
     let mut conn = state.rcon_connection.lock().await;
     if conn.is_none() {
-        let new_conn = Connection::builder().connect("localhost:27969", &password).await.or(Err(()))?;
+        let new_conn = Connection::builder()
+            .connect("localhost:27969", &password)
+            .await
+            .or(Err(()))?;
         *conn = Some(new_conn);
     }
     Ok(())

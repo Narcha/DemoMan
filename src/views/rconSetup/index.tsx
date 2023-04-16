@@ -4,7 +4,7 @@ import { Alert, Center, Paper, Stack, Text } from "@mantine/core";
 import {
   IconAlertCircle,
   IconCircleCheck,
-} from "@tabler/icons";
+} from "@tabler/icons-react";
 
 import useStore from "../../hooks/useStore";
 import { initRcon, sendCommand } from "../../api";

@@ -1,15 +1,15 @@
 use std::{
     collections::HashMap,
     ffi::OsStr,
-    fs::{ self, read_dir, File },
-    io::{ Read, Write },
-    path::{ Path, PathBuf },
+    fs::{self, read_dir, File},
+    io::{Read, Write},
+    path::{Path, PathBuf},
     time::UNIX_EPOCH,
 };
 
 use bitbuffer::BitRead;
 use log::warn;
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
 
 use self::errors::DemoReadError;
 
@@ -31,30 +31,6 @@ pub struct DemoEvent {
     pub name: DemoEventType,
     pub value: String,
     pub tick: u64,
-}
-
-/**
- * Generic scoreboard struct.  This is used to track the current scores for a single player.
- */
-#[derive(Debug, Serialize, Deserialize, PartialEq, Default, Clone)]
-pub struct Scoreboard {
-    pub points: u32,
-    pub kills: u32,
-    pub assists: u32,
-    pub deaths: u32,
-    pub buildings_destroyed: u32,
-    pub captures: u32,
-    pub defenses: u32,
-    pub dominations: u32,
-    pub revenges: u32,
-    pub ubercharges: u32,
-    pub headshots: u32,
-    pub teleports: u32,
-    pub healing: u32,
-    pub backstabs: u32,
-    pub bonus_points: u32,
-    pub support: u32,
-    pub damage_dealt: u32,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -80,7 +56,7 @@ impl Demo {
         header: tf_demo_parser::demo::header::Header,
         events: Vec<DemoEvent>,
         tags: Vec<String>,
-        metadata: fs::Metadata
+        metadata: fs::Metadata,
     ) -> Self {
         Self {
             name,
@@ -143,7 +119,7 @@ pub enum DemoCommandError {
 /// - The file is incomplete or has an invalid header
 /// - The file header indicates that this demo was recorded for a game that is not TF2
 pub fn read_demo_header(
-    path: &Path
+    path: &Path,
 ) -> Result<tf_demo_parser::demo::header::Header, DemoReadError> {
     let mut file = File::open(path)?;
 
@@ -153,8 +129,7 @@ pub fn read_demo_header(
     let demo = tf_demo_parser::Demo::new(&buf);
 
     let mut stream = demo.get_stream();
-    let header = tf_demo_parser::demo::header::Header
-        ::read(&mut stream)
+    let header = tf_demo_parser::demo::header::Header::read(&mut stream)
         .or(Err(DemoReadError::InvalidHeader))?;
 
     if header.game != *"tf" {
@@ -168,10 +143,13 @@ pub fn read_demo_header(
 /// If no JSON file exists or it is invalid, empty lists will be returned.
 pub fn read_events_and_tags(json_path: &Path) -> (Vec<DemoEvent>, Vec<String>) {
     // This fails if the file does not exist or is not readable
-    if let Ok(bytes) = fs::read(&json_path) {
+    if let Ok(bytes) = fs::read(json_path) {
         // This fails if the file does not contain valid JSON matching the `DemoJsonFile` type.
         if let Ok(deserialized) = serde_json::from_slice::<DemoJsonFileDe>(&bytes) {
-            return (deserialized.events.unwrap_or_default(), deserialized.tags.unwrap_or_default());
+            return (
+                deserialized.events.unwrap_or_default(),
+                deserialized.tags.unwrap_or_default(),
+            );
         } else {
             warn!("Invalid JSON file at {}", &json_path.display());
         }
@@ -197,7 +175,14 @@ pub fn read_demo(path: &Path) -> Result<Demo, DemoReadError> {
     }
     let header = read_demo_header(path)?;
     let (events, tags) = read_events_and_tags(&path.with_extension("json"));
-    Ok(Demo::new(name, path.to_path_buf(), header, events, tags, metadata))
+    Ok(Demo::new(
+        name,
+        path.to_path_buf(),
+        header,
+        events,
+        tags,
+        metadata,
+    ))
 }
 
 /// Find all demos in the directory at `dir_path` and collect them in a `HashMap`.
@@ -228,15 +213,14 @@ pub fn read_demos_in_directory(dir_path: &Path) -> Result<HashMap<String, Demo>,
 pub fn write_events_and_tags(
     json_path: &Path,
     events: &Vec<DemoEvent>,
-    tags: &Vec<String>
+    tags: &Vec<String>,
 ) -> Result<(), DemoCommandError> {
     if events.is_empty() && tags.is_empty() {
         fs::remove_file(json_path).or(Err(DemoCommandError::FileWriteFailed))?;
         return Ok(());
     }
 
-    let mut file = fs::OpenOptions
-        ::new()
+    let mut file = fs::OpenOptions::new()
         .write(true)
         .truncate(true)
         .create(true)
@@ -251,6 +235,7 @@ pub fn write_events_and_tags(
         return Err(DemoCommandError::SerializationFailed);
     }
 
-    file.write_all(&serializer.into_inner()).or(Err(DemoCommandError::FileWriteFailed))?;
+    file.write_all(&serializer.into_inner())
+        .or(Err(DemoCommandError::FileWriteFailed))?;
     Ok(())
 }

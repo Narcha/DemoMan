@@ -12,7 +12,7 @@ import { FixedSizeList, ListChildComponentProps } from "react-window";
 import memoize from "memoize-one";
 
 import { Alert, ScrollArea, Loader } from "@mantine/core";
-import { IconFilter, IconSearch, IconArrowsSort } from "@tabler/icons";
+import { IconFilter, IconSearch, IconArrowsSort } from "@tabler/icons-react";
 
 import { Demo } from "../../demo";
 import DemoListRow from "./DemoListRow";

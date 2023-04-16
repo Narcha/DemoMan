@@ -7,7 +7,7 @@
     <img alt="CodeFactor" src="https://img.shields.io/codefactor/grade/github/narcha/demoman?style=for-the-badge"></a>
   <a href="https://discord.gg/GduKxhYFhR">
     <img alt="Discord" src="https://img.shields.io/discord/966262251944292372?style=for-the-badge"></a>
-  <a href="https://github.com/Narcha/DemoMan/blob/main/LICENSE.txt">
+  <a href="LICENSE.txt">
     <img alt="GitHub" src="https://img.shields.io/github/license/Narcha/Demoman?style=for-the-badge"></a>
   <a href="https://github.com/Narcha/DemoMan/releases/latest">
     <img alt="GitHub release" src="https://img.shields.io/github/v/release/narcha/demoman?include_prereleases&style=for-the-badge"></a>
@@ -15,68 +15,44 @@
 
 # DemoMan
 
-A TF2 demo manager for Linux, Windows and MacOS built with [Electron](https://www.electronjs.org/)
+The TF2 demo manager for Linux, Windows and MacOS.
 
-## Features
+# 🚧 Rewrite in progress 🚧
 
-- Detailed demo list
-  - Filter by name/map/player/tags/type (stv or pov)
-- Demo details page
-  - Rename/delete demos
-  - Edit/delete/add bookmarks
-  - Add tags to a demo
-- Automatically delete demos without bookmarks
-- Convert P-REC events to the standard format
+Version 1 of DemoMan is feature-complete and available for download.
+Visit the [releases page](https://github.com/Narcha/DemoMan/releases)
+to download the latest executable,
+and the [v1 branch](https://github.com/Narcha/DemoMan/tree/v1)
+of this repo for screenshots, features, and source code of version 1.
 
-## Screenshots
+I'm currently working on version 2 of the app, rewritten from scratch with
+[Rust](https://www.rust-lang.org/),
+[Tauri](https://tauri.app/), and
+[Mantine](https://mantine.dev/).
+This version will have many exciting features that were
+not feasible to implement in version 1.
 
-### Main view
+# ❤️ Contributing
 
-![Main view](/githubassets/screenshots/main.png)
+Contributions are welcome and appreciated.
+If you have any questions, feel free to contact me
+on the project's [Discord server](https://discord.gg/GduKxhYFhR).
+Development is organized [here](https://github.com/users/Narcha/projects/2).
 
-### Smart filtering
+If you can't contribute code, you can still help:
+- Give the repo a star on GitHub 😉
+- Contribute map thumbnails
+- Report issues you come across
+- Let the devs know if you have any ideas/suggestions
 
-![Smart filtering](/githubassets/screenshots/filter.png)
+# 🛠️ Developing
 
-### Demo details view
+Prerequisites: install Rust and npm.
 
-![Demo details view](/githubassets/screenshots/details.png)
+1. Clone the repository and run `npm install`.
+2. Start the program by running `npm run tauri dev`.
+3. Create a packaged executable by running `npm run tauri build`.
 
-## Roadmap
-
-- Support for multiple demo folders
-- Ability to control TF2 from the app
-  - "play demo" button
-  - "skip to event" button
-- Full demo parsing
-  - Chat log
-  - Kill log
-  - Scoreboard
-
-## P-REC compatibility
-
-DemoMan primarily uses the event format used by the demo support commands in vanilla TF2.
-This format stores each demo's events in a JSON file with the same name as the demo.
-P-REC uses a different format: it records all events in a single text file.
-DemoMan can convert the P-REC file to the "standard format", and there is also
-limited optional support for loading a P-REC file directly. If you don't absolutely need P-REC,
-you are encouraged to use the built-in demo recording feature.
-See [this wiki page](https://github.com/Narcha/DemoMan/wiki/Setting-up-demo-recording) to learn how to use it.
-
-## Installing
-
-Grab the latest prebuilt version [here](https://github.com/Narcha/DemoMan/releases) or [build it yourself](#Developing).
-
-## Developing
-
-Prerequisites: [node.js](https://nodejs.org/en/download/) and npm (included in node.js).
-
-Clone the repository and run `npm install`.
-
-Start the program by running `npm start`.
-
-Create a packaged executable by running `npm run package`.
-
-## License
+# ⚖️ License
 
 DemoMan is [free software](https://www.gnu.org/philosophy/free-sw.html) released under the [GNU GPLv3](LICENSE.txt) license.

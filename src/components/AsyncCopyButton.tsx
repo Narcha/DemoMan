@@ -1,7 +1,7 @@
 import { writeText } from "@tauri-apps/api/clipboard";
 
 import { Tooltip, ActionIcon } from "@mantine/core";
-import { IconCheck, IconCopy } from "@tabler/icons";
+import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { useAsyncCallback } from "react-async-hook";
 
 export type AsyncCopyButtonProps = {

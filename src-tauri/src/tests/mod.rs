@@ -41,10 +41,10 @@ fn test_json_read_and_write() {
     let (events, tags) = read_events_and_tags(json_path_old);
     write_events_and_tags(json_path_new, &events, &tags).expect("Writing JSON file failed");
 
-    let old_file_content = std::fs::read(&json_path_old).expect("Failed to read old file");
-    let new_file_content = std::fs::read(&json_path_new).expect("Failed to read new file");
+    let old_file_content = std::fs::read(json_path_old).expect("Failed to read old file");
+    let new_file_content = std::fs::read(json_path_new).expect("Failed to read new file");
 
     assert_eq!(old_file_content, new_file_content);
 
-    std::fs::remove_file(&json_path_new).unwrap();
+    std::fs::remove_file(json_path_new).unwrap();
 }

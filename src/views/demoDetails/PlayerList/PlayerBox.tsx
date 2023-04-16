@@ -9,57 +9,55 @@ interface PlayerBoxProps {
   onClick: () => void;
 }
 
-const useStyles = createStyles((theme) => ({
-  box: {
-    height: "40px",
-    display: "flex",
-    alignItems: "center",
-    paddingRight: 8,
-    "&:hover": {
-      backgroundColor: theme.colors.dark[5],
+const useStyles = createStyles(
+  (theme, { selected }: { selected: boolean }) => ({
+    root: {
+      height: "40px",
+      display: "flex",
+      alignItems: "center",
+      padding: 8,
+      margin: 2,
+      borderRadius: theme.fn.radius("sm"),
+      backgroundColor: selected
+        ? theme.fn.rgba(theme.colors[theme.primaryColor][8], 0.3)
+        : "transparent",
       cursor: "pointer",
+      "&:hover": {
+        backgroundColor: selected
+          ? theme.fn.rgba(theme.colors[theme.primaryColor][6], 0.3)
+          : theme.colorScheme === "dark"
+          ? theme.colors.dark[5]
+          : theme.colors.gray[3],
+      },
     },
-  },
-  selectedBox: {
-    height: "40px",
-    display: "flex",
-    alignItems: "center",
-    paddingRight: 8,
-    background: theme.colors.indigo[9],
-    "&:hover": {
-      backgroundColor: theme.colors.indigo[7],
-      cursor: "pointer",
+    classIcon: {
+      marginRight: 8,
+      width: 24,
     },
-  },
-  classIcon: {
-    width: 32,
-  },
-  playerName: {
-    addingLeft: "8px",
-    textOverflow: "ellipsis",
-    overflow: "hidden",
-    whiteSpace: "nowrap",
-  },
-  pointsScoreboardValue: {
-    width: 40,
-    textAlign: "right",
-  },
-  simpleScoreboardValue: {
-    width: 30,
-    textAlign: "right",
-  },
-}));
+    playerName: {
+      textOverflow: "ellipsis",
+      overflow: "hidden",
+      whiteSpace: "nowrap",
+    },
+    pointsScoreboardValue: {
+      textAlign: "right",
+    },
+    simpleScoreboardValue: {
+      width: 32,
+      textAlign: "right",
+    },
+  })
+);
 
 export function PlayerBox({ player, selected, onClick }: PlayerBoxProps) {
-  const { classes } = useStyles();
+  const { classes } = useStyles({ selected });
 
   return (
-    <div
-      onClick={onClick}
-      className={selected ? classes.selectedBox : classes.box}
-    >
+    <div onClick={onClick} className={classes.root}>
       <div className={classes.classIcon}>
-        <ClassIcon cls={player.classes[0]} muted={false} size={24} />
+        {player.classes.length !== 0 && (
+          <ClassIcon cls={player.classes[0]} size={24} />
+        )}
       </div>
       <div style={{ flexGrow: 1 }}>
         <Text className={classes.playerName}>{player.name}</Text>

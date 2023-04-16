@@ -1,3 +1,5 @@
+import { createStyles } from "@mantine/core";
+
 import ScoutIcon from "../assets/class_icons/scout.png";
 import SniperIcon from "../assets/class_icons/sniper.png";
 import SoldierIcon from "../assets/class_icons/soldier.png";
@@ -8,7 +10,6 @@ import PyroIcon from "../assets/class_icons/pyro.png";
 import SpyIcon from "../assets/class_icons/spy.png";
 import EngineerIcon from "../assets/class_icons/engineer.png";
 import { Class, stringifyClass } from "../demo";
-import { createStyles } from "@mantine/core";
 
 /*
   Class mapping:
@@ -38,27 +39,24 @@ const classIconMap = [
 ];
 
 const useStyles = createStyles(
-  (theme, { muted, size }: { muted: boolean; size: number }) => ({
+  (theme, { size }: { size: number }) => ({
     root: {
       width: size ?? 32,
       height: size ?? 32,
-      opacity: muted ? 0.5 : 1,
     },
   })
 );
 
 export type ClassIconProps = {
   cls: Class;
-  muted?: boolean;
   size?: number;
 };
 
 export default function ClassIcon({
   cls,
-  muted = true,
   size = 32,
 }: ClassIconProps) {
-  const { classes } = useStyles({ muted, size });
+  const { classes } = useStyles({ size });
 
   return (
     <img

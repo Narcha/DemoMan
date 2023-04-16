@@ -28,7 +28,7 @@ import {
   IconFolder,
   IconSettings,
   IconPlug,
-} from "@tabler/icons";
+} from "@tabler/icons-react";
 
 import { AppShellProvider, NavbarButton } from "./AppShell";
 
@@ -85,7 +85,7 @@ export default function App() {
             sx={(theme) => ({
               backgroundColor:
                 theme.colorScheme === "dark"
-                  ? theme.colors.dark[8]
+                  ? theme.colors.dark[7]
                   : theme.white,
             })}
           >
@@ -127,8 +127,12 @@ export default function App() {
             height={40}
             sx={(theme) => ({
               display: "flex",
-              backgroundColor: theme.colors.dark[9],
+              backgroundColor:
+                theme.colorScheme === "dark"
+                  ? theme.colors.dark[6]
+                  : theme.white,
             })}
+            data-tauri-drag-region
           >
             <HeaderIcon
               icon={<IconChevronLeft />}

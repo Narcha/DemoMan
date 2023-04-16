@@ -20,6 +20,7 @@ import {
 } from "../../demo";
 import { KillIcon } from "../../components";
 import KillstreakIcon from "../../components/KillstreakIcon";
+import CapturePoints from "../../assets/translations/capture_points.json";
 
 type HighlightProps = {
   event: Highlight;
@@ -314,12 +315,15 @@ function PointCapturedHighlightBox(
     icon = "bluecapture";
   }
 
+  const translationLookup = highlight.point_name.substring(1); // substring(1) to remove the leading "#" character
+  const pointName = CapturePoints[translationLookup as keyof typeof CapturePoints] ?? highlight.point_name;
+
   return (
     <div className={classes.root}>
       <PlayerNames players={cappers} team={highlight.capturing_team} />
       &nbsp;
       {icon !== undefined && <KillIcon killIcon={icon} />}
-      captured {highlight.point_name}
+      captured {pointName}
     </div>
   );
 }

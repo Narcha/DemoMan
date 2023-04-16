@@ -1,0 +1,2 @@
+# Empty config file to force rustfmt to use the default config,
+# regardless of custom global settings.

@@ -6,10 +6,10 @@
 use std::{collections::HashMap, path::PathBuf, sync::Mutex};
 
 use tauri::async_runtime::Mutex as AsyncMutex;
-use tauri_plugin_log::{LogTarget, LoggerBuilder as LogPluginBuilder};
+use tauri_plugin_log::LogTarget;
 
-use tokio::net::TcpStream;
 use rcon::Connection;
+use tokio::net::TcpStream;
 
 use demo::Demo;
 
@@ -40,7 +40,7 @@ fn main() {
 
     tauri::Builder::default()
         .plugin(
-            LogPluginBuilder::default()
+            tauri_plugin_log::Builder::default()
                 .targets([LogTarget::LogDir, LogTarget::Stdout])
                 .build(),
         )

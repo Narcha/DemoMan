@@ -8,7 +8,7 @@ import {
 import ReactDOM from "react-dom";
 
 import { createStyles, UnstyledButton } from "@mantine/core";
-import { TablerIcon } from "@tabler/icons";
+import { Icon } from "@tabler/icons-react";
 
 type AppShellContextType = {
   headerRef: RefObject<HTMLDivElement>;
@@ -71,7 +71,7 @@ const useNavbarButtonStyles = createStyles((theme) => ({
 }));
 
 type NavbarButtonProps = {
-  icon: TablerIcon;
+  icon: Icon;
   active?: boolean;
   onClick?(): void;
 };

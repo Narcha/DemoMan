@@ -1,5 +1,5 @@
 import { Group, Badge, Text } from "@mantine/core";
-import { IconTags } from "@tabler/icons";
+import { IconTags } from "@tabler/icons-react";
 
 
 export default function Badges({ items, max }: { items: string[]; max: number }) {

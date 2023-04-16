@@ -32,7 +32,7 @@ import {
   IconTimeline,
   IconUser,
   IconUsers,
-} from "@tabler/icons";
+} from "@tabler/icons-react";
 
 import { getDemoByName, getDemoDetails, sendCommand } from "../../api";
 import { HeaderPortal } from "../../AppShell";
@@ -75,6 +75,7 @@ function DemoDetailsView({ demo }: { demo: Demo }) {
               size="xl"
               inline
               style={{ cursor: "default", whiteSpace: "nowrap" }}
+              color="white"
             >
               {demo.name}
             </Text>

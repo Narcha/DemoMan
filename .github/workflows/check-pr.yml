@@ -1,0 +1,42 @@
+name: Check PR
+
+on:
+  pull_request:
+    branches-ignore: ["v1"]
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Check PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt, clippy
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf
+      - name: Install frontend dependencies
+        run: npm install
+      - uses: tauri-apps/tauri-action@e537a6f7bc75cbe74c6668f28a9836bd8d0eac36 #@dev
+        with:
+          # Only build in debug mode so the following
+          # steps don't have to compile again.
+          includeDebug: true
+          includeRelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run backend tests
+        run: cargo test --all-features --release
+      - name: Lint backend
+        run: |
+          cargo fmt --check
+          cargo clippy --all-features --tests
+      - name: Lint frontend
+        run: npm run lint:js

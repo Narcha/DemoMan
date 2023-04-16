@@ -11,7 +11,18 @@ import App from "./App";
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <MantineProvider
-      theme={{ colorScheme: "dark" }}
+      theme={{
+        colorScheme: "dark",
+        components: {
+          Tooltip: {
+            defaultProps: {
+              transitionProps: {
+                transition: "pop",
+              },
+            },
+          },
+        },
+      }}
       withNormalizeCSS
       withGlobalStyles
     >

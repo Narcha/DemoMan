@@ -6,3 +6,4 @@ src-tauri
 
 # Compilation output
 dist
+target

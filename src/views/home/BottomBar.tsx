@@ -1,5 +1,5 @@
 import { ActionIcon, createStyles, Text } from "@mantine/core";
-import { IconListCheck } from "@tabler/icons";
+import { IconListCheck } from "@tabler/icons-react";
 import { formatFileSize } from "../../util";
 
 export type Props = {

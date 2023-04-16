@@ -6,13 +6,9 @@ use log::info;
 use tauri::State;
 
 use crate::demo::{
-    analyser::{ GameSummary, GameDetailsAnalyser },
+    analyser::{GameDetailsAnalyser, GameSummary},
     errors::DemoReadError,
-    read_demos_in_directory,
-    write_events_and_tags,
-    Demo,
-    DemoCommandError,
-    DemoEvent,
+    read_demos_in_directory, write_events_and_tags, Demo, DemoCommandError, DemoEvent,
 };
 use crate::AppState;
 
@@ -21,7 +17,7 @@ use crate::AppState;
 #[tauri::command]
 pub async fn get_demos_in_directory(
     dir_path: String,
-    state: State<'_, AppState>
+    state: State<'_, AppState>,
 ) -> Result<Vec<Demo>, DemoReadError> {
     let mut cache = state.demo_cache.lock().expect("Failed to lock mutex");
 
@@ -49,10 +45,13 @@ pub async fn get_demos_in_directory(
 pub fn set_demo_events(
     demo_name: String,
     new_events: Vec<DemoEvent>,
-    state: State<'_, AppState>
+    state: State<'_, AppState>,
 ) -> Result<(), DemoCommandError> {
     let mut demos_cache = state.demo_cache.lock().expect("Failed to lock mutex");
-    let demo = demos_cache.demos.get_mut(&demo_name).ok_or(DemoCommandError::DemoNotFound)?;
+    let demo = demos_cache
+        .demos
+        .get_mut(&demo_name)
+        .ok_or(DemoCommandError::DemoNotFound)?;
     let json_path = demo.path.with_extension("json");
     write_events_and_tags(&json_path, &new_events, &demo.tags)?;
     demo.events = new_events;
@@ -63,10 +62,13 @@ pub fn set_demo_events(
 pub fn set_demo_tags(
     demo_name: String,
     new_tags: Vec<String>,
-    state: State<'_, AppState>
+    state: State<'_, AppState>,
 ) -> Result<(), DemoCommandError> {
     let mut demos_cache = state.demo_cache.lock().expect("Failed to lock mutex");
-    let demo = demos_cache.demos.get_mut(&demo_name).ok_or(DemoCommandError::DemoNotFound)?;
+    let demo = demos_cache
+        .demos
+        .get_mut(&demo_name)
+        .ok_or(DemoCommandError::DemoNotFound)?;
     let json_path = demo.path.with_extension("json");
     write_events_and_tags(&json_path, &demo.events, &new_tags)?;
     demo.tags = new_tags;
@@ -77,16 +79,19 @@ pub fn set_demo_tags(
 pub fn delete_demo(
     demo_name: String,
     trash: bool,
-    state: State<'_, AppState>
+    state: State<'_, AppState>,
 ) -> Result<(), DemoCommandError> {
     info!("Deleting demo {}", &demo_name);
     let mut demos_cache = state.demo_cache.lock().expect("Failed to lock mutex");
-    let demo = demos_cache.demos.get_mut(&demo_name).ok_or(DemoCommandError::DemoNotFound)?;
+    let demo = demos_cache
+        .demos
+        .get_mut(&demo_name)
+        .ok_or(DemoCommandError::DemoNotFound)?;
 
     if trash {
         trash::delete(&demo.path).or(Err(DemoCommandError::FileDeleteFailed))?;
 
-        if let Err(e) = trash::delete(&demo.path.with_extension("json")) {
+        if let Err(e) = trash::delete(demo.path.with_extension("json")) {
             if let trash::Error::CouldNotAccess { target: _ } = e {
                 // We don't care if the file was not found
                 // because the demo has no JSON file.
@@ -97,7 +102,7 @@ pub fn delete_demo(
     } else {
         std::fs::remove_file(&demo.path).or(Err(DemoCommandError::FileDeleteFailed))?;
 
-        if let Err(e) = std::fs::remove_file(&demo.path.with_extension("json")) {
+        if let Err(e) = std::fs::remove_file(demo.path.with_extension("json")) {
             if e.kind() == std::io::ErrorKind::NotFound {
                 // We don't care if the file was not found
                 // because the demo has no JSON file.
@@ -115,20 +120,21 @@ pub fn delete_demo(
 pub fn rename_demo(
     demo_name: String,
     new_name: String,
-    state: State<'_, AppState>
+    state: State<'_, AppState>,
 ) -> Result<(), DemoCommandError> {
     let mut demos_cache = state.demo_cache.lock().expect("Failed to lock mutex");
-    let mut demo = demos_cache.demos.remove(&demo_name).ok_or(DemoCommandError::DemoNotFound)?;
+    let mut demo = demos_cache
+        .demos
+        .remove(&demo_name)
+        .ok_or(DemoCommandError::DemoNotFound)?;
 
     let new_path = demo.path.with_file_name(&new_name);
 
     std::fs::rename(&demo.path, &new_path).or(Err(DemoCommandError::FileRenameFailed))?;
-    if
-        let Err(e) = std::fs::rename(
-            &demo.path.with_extension("json"),
-            &new_path.with_extension("json")
-        )
-    {
+    if let Err(e) = std::fs::rename(
+        demo.path.with_extension("json"),
+        new_path.with_extension("json"),
+    ) {
         // We don't care if the file was not found
         // because the demo has no JSON file.
         if e.kind() != std::io::ErrorKind::NotFound {
@@ -147,10 +153,14 @@ pub fn rename_demo(
 #[tauri::command]
 pub fn get_demo_by_name(
     demo_name: String,
-    state: State<'_, AppState>
+    state: State<'_, AppState>,
 ) -> Result<Demo, DemoCommandError> {
     let demos_cache = state.demo_cache.lock().expect("Failed to lock mutex");
-    Ok(demos_cache.demos.get(&demo_name).ok_or(DemoCommandError::DemoNotFound)?.clone())
+    Ok(demos_cache
+        .demos
+        .get(&demo_name)
+        .ok_or(DemoCommandError::DemoNotFound)?
+        .clone())
 }
 
 #[tauri::command]

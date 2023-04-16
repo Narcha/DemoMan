@@ -4,14 +4,14 @@ mod player_condition;
 mod player_flag;
 mod weapon_class;
 
-use std::cmp::{ Ordering, Reverse };
-use std::{ convert::TryFrom, collections::HashMap };
+use std::cmp::{Ordering, Reverse};
 use std::str::FromStr;
+use std::{collections::HashMap, convert::TryFrom};
 
 use log::info;
-use serde::{ Deserialize, Serialize };
-use num_derive::{ FromPrimitive };
-use num_traits::{ FromPrimitive };
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
+use serde::{Deserialize, Serialize};
 
 use steamid_ng::SteamID;
 use tf_demo_parser::demo::header::Header;
@@ -19,39 +19,29 @@ use tf_demo_parser::{
     demo::{
         data::DemoTick,
         gameevent_gen::{
-            CrossbowHealEvent,
-            PlayerConnectClientEvent,
-            PlayerDeathEvent,
-            PlayerDisconnectEvent,
-            PlayerHurtEvent,
-            PlayerSpawnEvent,
-            PlayerTeamEvent,
-            TeamPlayPointCapturedEvent,
-            TeamPlayRoundStalemateEvent,
-            TeamPlayRoundStartEvent,
-            TeamPlayRoundWinEvent,
+            CrossbowHealEvent, PlayerConnectClientEvent, PlayerDeathEvent, PlayerDisconnectEvent,
+            PlayerHurtEvent, PlayerSpawnEvent, PlayerTeamEvent, TeamPlayPointCapturedEvent,
+            TeamPlayRoundStalemateEvent, TeamPlayRoundStartEvent, TeamPlayRoundWinEvent,
         },
         gamevent::GameEvent,
         message::{
             gameevent::GameEventMessage,
-            packetentities::{ EntityId, PacketEntity },
-            Message,
+            packetentities::{EntityId, PacketEntity},
             usermessage::UserMessage,
+            Message,
         },
         packet::{
-            datatable::{ ParseSendTable, ServerClass, ServerClassName },
+            datatable::{ParseSendTable, ServerClass, ServerClassName},
             stringtable::StringTableEntry,
         },
-        parser::{ analyser::{ Class, Team, UserId }, MessageHandler },
-        sendprop::{
-            SendPropIdentifier,
+        parser::{
+            analyser::{Class, Team, UserId},
+            MessageHandler,
         },
+        sendprop::SendPropIdentifier,
     },
-    MessageType,
-    ParserState,
-    Stream,
+    MessageType, ParserState, Stream,
 };
-pub use crate::demo::Scoreboard;
 
 pub use custom_damage::CustomDamage;
 pub use damage_flag::DamageFlag;
@@ -158,6 +148,30 @@ pub struct GameSummary {
     pub interval_per_tick: f32,
     pub num_rounds: u32,
     pub players: Vec<PlayerSummary>,
+}
+
+/**
+ * Generic scoreboard struct. This is used to track the current scores for a single player.
+ */
+#[derive(Debug, Serialize, Deserialize, PartialEq, Default, Clone)]
+pub struct Scoreboard {
+    pub points: u32,
+    pub kills: u32,
+    pub assists: u32,
+    pub deaths: u32,
+    pub buildings_destroyed: u32,
+    pub captures: u32,
+    pub defenses: u32,
+    pub dominations: u32,
+    pub revenges: u32,
+    pub ubercharges: u32,
+    pub headshots: u32,
+    pub teleports: u32,
+    pub healing: u32,
+    pub backstabs: u32,
+    pub bonus_points: u32,
+    pub support: u32,
+    pub damage_dealt: u32,
 }
 
 #[derive(Debug, Default)]
@@ -268,10 +282,7 @@ impl From<PlayerState> for PlayerSummary {
             steam_id,
             user_id,
             team,
-            classes: classes
-                .into_iter()
-                .map(|(i, _v)| i)
-                .collect(),
+            classes: classes.into_iter().map(|(i, _v)| i).collect(),
             scoreboard,
             round_scoreboards,
         }
@@ -305,11 +316,11 @@ impl MessageHandler for GameDetailsAnalyser {
     fn does_handle(message_type: MessageType) -> bool {
         matches!(
             message_type,
-            MessageType::PacketEntities |
-                MessageType::GameEvent |
-                MessageType::SetPause |
-                MessageType::ServerInfo |
-                MessageType::UserMessage
+            MessageType::PacketEntities
+                | MessageType::GameEvent
+                | MessageType::SetPause
+                | MessageType::ServerInfo
+                | MessageType::UserMessage
         )
     }
 
@@ -327,7 +338,11 @@ impl MessageHandler for GameDetailsAnalyser {
                 self.handle_usermessage(message, tick);
             }
             Message::SetPause(message) => {
-                let event = if message.pause { Highlight::Pause } else { Highlight::Unpause };
+                let event = if message.pause {
+                    Highlight::Pause
+                } else {
+                    Highlight::Unpause
+                };
                 self.add_highlight(event, tick);
             }
             Message::ServerInfo(message) => {
@@ -343,13 +358,13 @@ impl MessageHandler for GameDetailsAnalyser {
         table: &str,
         index: usize,
         entry: &StringTableEntry,
-        _parser_state: &ParserState
+        _parser_state: &ParserState,
     ) {
         if table == "userinfo" {
             self.parse_user_info(
                 index,
                 entry.text.as_ref().map(|s| s.as_ref()),
-                entry.extra_data.as_ref().map(|data| data.data.clone())
+                entry.extra_data.as_ref().map(|data| data.data.clone()),
             );
         }
     }
@@ -358,7 +373,7 @@ impl MessageHandler for GameDetailsAnalyser {
         &mut self,
         _parse_tables: &[ParseSendTable],
         server_classes: &[ServerClass],
-        _parser_state: &ParserState
+        _parser_state: &ParserState,
     ) {
         self.class_names = server_classes
             .iter()
@@ -374,14 +389,19 @@ impl MessageHandler for GameDetailsAnalyser {
 
     fn into_output(self, _state: &ParserState) -> Self::Output {
         Self::Output {
-            local_user_id: *self.player_entities
+            local_user_id: *self
+                .player_entities
                 .get(&self.local_entity_id)
                 .unwrap_or(&UserId::default()),
             highlights: self.highlights,
             red_team_score: self.red_team_score,
             blue_team_score: self.blue_team_score,
             interval_per_tick: self.interval_per_tick,
-            players: self.players.into_values().map(PlayerSummary::from).collect(),
+            players: self
+                .players
+                .into_values()
+                .map(PlayerSummary::from)
+                .collect(),
             num_rounds: self.current_round,
         }
     }
@@ -443,16 +463,19 @@ impl GameDetailsAnalyser {
     // }
 
     fn get_player_of_entity_mut(&mut self, entity_id: &EntityId) -> Option<&mut PlayerState> {
-        self.player_entities.get(entity_id).and_then(|user_id| self.players.get_mut(user_id))
+        self.player_entities
+            .get(entity_id)
+            .and_then(|user_id| self.players.get_mut(user_id))
     }
 
     pub fn handle_entity(
         &mut self,
         entity: &PacketEntity,
         tick: DemoTick,
-        parser_state: &ParserState
+        parser_state: &ParserState,
     ) {
-        let class_name: &str = self.class_names
+        let class_name: &str = self
+            .class_names
             .get(usize::from(entity.server_class))
             .map(|class_name| class_name.as_str())
             .unwrap_or("");
@@ -508,14 +531,18 @@ impl GameDetailsAnalyser {
 
     fn handle_usermessage(&mut self, message: &UserMessage, tick: DemoTick) {
         if let UserMessage::SayText2(message) = message {
-            let player_id = self.player_entities.get(&message.client).cloned().unwrap_or_default();
+            let player_id = self
+                .player_entities
+                .get(&message.client)
+                .cloned()
+                .unwrap_or_default();
 
             self.add_highlight(
                 Highlight::ChatMessage {
                     sender: self.player_snapshot(player_id),
                     text: message.plain_text(),
                 },
-                tick
+                tick,
             );
         }
     }
@@ -524,19 +551,18 @@ impl GameDetailsAnalyser {
         for prop in entity.props(parser_state) {
             if let Some((table_name, prop_name)) = prop.identifier.names() {
                 if let Ok(entity_id) = u32::from_str(prop_name.as_str()) {
-                    if let Some(player) = self.get_player_of_entity_mut(&EntityId::from(entity_id)) {
+                    if let Some(player) = self.get_player_of_entity_mut(&EntityId::from(entity_id))
+                    {
                         match table_name.as_str() {
                             "m_iTeam" => {
-                                let new_team = Team::new(
-                                    i64::try_from(&prop.value).unwrap_or_default()
-                                );
+                                let new_team =
+                                    Team::new(i64::try_from(&prop.value).unwrap_or_default());
 
                                 player.team = new_team;
                             }
                             "m_iPlayerClass" => {
-                                player.class = Class::new(
-                                    i64::try_from(&prop.value).unwrap_or_default()
-                                );
+                                player.class =
+                                    Class::new(i64::try_from(&prop.value).unwrap_or_default());
                             }
                             "m_iChargeLevel" => {
                                 // This is only networked in tournament mode
@@ -556,37 +582,25 @@ impl GameDetailsAnalyser {
         &mut self,
         entity: &PacketEntity,
         parser_state: &ParserState,
-        _tick: DemoTick
+        _tick: DemoTick,
     ) {
         let current_round = self.current_round;
 
         if let Some(player) = self.get_player_of_entity_mut(&entity.entity_index) {
-            const LIFE_STATE_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_BasePlayer",
-                "m_lifeState"
-            );
+            const LIFE_STATE_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_BasePlayer", "m_lifeState");
 
             // Player conditions
-            const PLAYER_COND_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerShared",
-                "m_nPlayerCond"
-            );
-            const PLAYER_COND_EX_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerShared",
-                "m_nPlayerCondEx"
-            );
-            const PLAYER_COND_EX2_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerShared",
-                "m_nPlayerCondEx2"
-            );
-            const PLAYER_COND_EX3_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerShared",
-                "m_nPlayerCondEx3"
-            );
-            const PLAYER_CONDITION_BITS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerConditionListExclusive",
-                "_condition_bits"
-            );
+            const PLAYER_COND_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerShared", "m_nPlayerCond");
+            const PLAYER_COND_EX_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerShared", "m_nPlayerCondEx");
+            const PLAYER_COND_EX2_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerShared", "m_nPlayerCondEx2");
+            const PLAYER_COND_EX3_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerShared", "m_nPlayerCondEx3");
+            const PLAYER_CONDITION_BITS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerConditionListExclusive", "_condition_bits");
 
             // Properties for tracking per-player scoreboard information.
             // NOTE: These tables are actually called m_ScoreData and m_RoundScoreData, encoded
@@ -601,149 +615,114 @@ impl GameDetailsAnalyser {
             //
             // NOTE: some game modes DO subtract deaths from the points total,
             // but I don't care enough about that to bother checking for it
-            const CAPTURES_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iCaptures"
-            );
-            const DEFENSES_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iDefenses"
-            );
-            const KILLS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iKills"
-            );
-            const DEATHS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iDeaths"
-            );
-            const DOMINATIONS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iDominations"
-            );
-            const REVENGE_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iRevenge"
-            );
-            const BUILDINGS_DESTROYED_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iBuildingsDestroyed"
-            );
-            const HEADSHOTS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iHeadshots"
-            );
-            const BACKSTABS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iBackstabs"
-            );
-            const HEAL_POINTS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iHealPoints"
-            );
-            const INVULNS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iInvulns"
-            );
-            const TELEPORTS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iTeleports"
-            );
-            const DAMAGE_DONE_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iDamageDone"
-            );
-            const KILL_ASSISTS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iKillAssists"
-            );
-            const BONUS_POINTS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iBonusPoints"
-            );
-            const POINTS_PROP: SendPropIdentifier = SendPropIdentifier::new(
-                "DT_TFPlayerScoringDataExclusive",
-                "m_iPoints"
-            );
+            const CAPTURES_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iCaptures");
+            const DEFENSES_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iDefenses");
+            const KILLS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iKills");
+            const DEATHS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iDeaths");
+            const DOMINATIONS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iDominations");
+            const REVENGE_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iRevenge");
+            const BUILDINGS_DESTROYED_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iBuildingsDestroyed");
+            const HEADSHOTS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iHeadshots");
+            const BACKSTABS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iBackstabs");
+            const HEAL_POINTS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iHealPoints");
+            const INVULNS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iInvulns");
+            const TELEPORTS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iTeleports");
+            const DAMAGE_DONE_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iDamageDone");
+            const KILL_ASSISTS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iKillAssists");
+            const BONUS_POINTS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iBonusPoints");
+            const POINTS_PROP: SendPropIdentifier =
+                SendPropIdentifier::new("DT_TFPlayerScoringDataExclusive", "m_iPoints");
 
             for prop in entity.props(parser_state) {
                 match prop.identifier {
                     LIFE_STATE_PROP => {
                         player.life_state = PlayerLifeState::from_i64(
-                            i64::try_from(&prop.value).unwrap_or_default()
-                        ).unwrap_or_default();
+                            i64::try_from(&prop.value).unwrap_or_default(),
+                        )
+                        .unwrap_or_default();
                     }
                     PLAYER_COND_PROP => {
                         player.player_cond = i64::try_from(&prop.value).unwrap_or_default() as u32;
                     }
                     PLAYER_COND_EX_PROP => {
-                        player.player_cond_ex = i64
-                            ::try_from(&prop.value)
-                            .unwrap_or_default() as u32;
+                        player.player_cond_ex =
+                            i64::try_from(&prop.value).unwrap_or_default() as u32;
                     }
                     PLAYER_COND_EX2_PROP => {
-                        player.player_cond_ex2 = i64
-                            ::try_from(&prop.value)
-                            .unwrap_or_default() as u32;
+                        player.player_cond_ex2 =
+                            i64::try_from(&prop.value).unwrap_or_default() as u32;
                     }
                     PLAYER_COND_EX3_PROP => {
-                        player.player_cond_ex3 = i64
-                            ::try_from(&prop.value)
-                            .unwrap_or_default() as u32;
+                        player.player_cond_ex3 =
+                            i64::try_from(&prop.value).unwrap_or_default() as u32;
                     }
                     PLAYER_CONDITION_BITS_PROP => {
-                        player.condition_bits = i64
-                            ::try_from(&prop.value)
-                            .unwrap_or_default() as u32;
+                        player.condition_bits =
+                            i64::try_from(&prop.value).unwrap_or_default() as u32;
                     }
                     CAPTURES_PROP => {
                         process_score_prop!(prop, captures, player, current_round);
-                    },
+                    }
                     DEFENSES_PROP => {
                         process_score_prop!(prop, defenses, player, current_round);
-                    },
+                    }
                     KILLS_PROP => {
                         process_score_prop!(prop, kills, player, current_round);
-                    },
+                    }
                     DEATHS_PROP => {
                         process_score_prop!(prop, deaths, player, current_round);
-                    },
+                    }
                     DOMINATIONS_PROP => {
                         process_score_prop!(prop, dominations, player, current_round);
-                    },
+                    }
                     REVENGE_PROP => {
                         process_score_prop!(prop, revenges, player, current_round);
-                    },
+                    }
                     BUILDINGS_DESTROYED_PROP => {
                         process_score_prop!(prop, buildings_destroyed, player, current_round);
-                    },
+                    }
                     HEADSHOTS_PROP => {
                         process_score_prop!(prop, headshots, player, current_round);
-                    },
+                    }
                     BACKSTABS_PROP => {
                         process_score_prop!(prop, backstabs, player, current_round);
-                    },
+                    }
                     HEAL_POINTS_PROP => {
                         process_score_prop!(prop, healing, player, current_round);
-                    },
+                    }
                     INVULNS_PROP => {
                         process_score_prop!(prop, ubercharges, player, current_round);
-                    },
+                    }
                     TELEPORTS_PROP => {
                         process_score_prop!(prop, teleports, player, current_round);
-                    },
+                    }
                     DAMAGE_DONE_PROP => {
                         process_score_prop!(prop, damage_dealt, player, current_round);
-                    },
+                    }
                     KILL_ASSISTS_PROP => {
                         process_score_prop!(prop, assists, player, current_round);
-                    },
+                    }
                     BONUS_POINTS_PROP => {
                         process_score_prop!(prop, bonus_points, player, current_round);
-                    },
+                    }
                     POINTS_PROP => {
                         process_score_prop!(prop, points, player, current_round);
-                    },
+                    }
                     _ => {}
                 }
             }
@@ -753,24 +732,19 @@ impl GameDetailsAnalyser {
     }
 
     fn handle_medigun(&mut self, entity: &PacketEntity, parser_state: &ParserState) {
-        const CHARGE_PROP: SendPropIdentifier = SendPropIdentifier::new(
-            "DT_TFWeaponMedigunDataNonLocal",
-            "m_flChargeLevel"
-        );
-        const LOCAL_CHARGE_PROP: SendPropIdentifier = SendPropIdentifier::new(
-            "DT_LocalTFWeaponMedigunData",
-            "m_flChargeLevel"
-        );
-        const OWNER_PROP: SendPropIdentifier = SendPropIdentifier::new(
-            "DT_BaseCombatWeapon",
-            "m_hOwner"
-        );
+        const CHARGE_PROP: SendPropIdentifier =
+            SendPropIdentifier::new("DT_TFWeaponMedigunDataNonLocal", "m_flChargeLevel");
+        const LOCAL_CHARGE_PROP: SendPropIdentifier =
+            SendPropIdentifier::new("DT_LocalTFWeaponMedigunData", "m_flChargeLevel");
+        const OWNER_PROP: SendPropIdentifier =
+            SendPropIdentifier::new("DT_BaseCombatWeapon", "m_hOwner");
 
         for prop in entity.props(parser_state) {
             match prop.identifier {
                 CHARGE_PROP | LOCAL_CHARGE_PROP => {
                     let charge = f32::try_from(&prop.value).unwrap_or_default();
-                    if let Some(owner_id) = self.mediguns.get(&entity.entity_index.into()).copied() {
+                    if let Some(owner_id) = self.mediguns.get(&entity.entity_index.into()).copied()
+                    {
                         if let Some(owner) = self.get_player_of_entity_mut(&owner_id) {
                             owner.charge = (charge * 100.0).round() as u8;
                         }
@@ -779,7 +753,8 @@ impl GameDetailsAnalyser {
                 OWNER_PROP => {
                     let owner_id = i64::try_from(&prop.value).unwrap_or_default() as u8 as u32;
                     if self.mediguns.get(&entity.entity_index.into()).is_none() {
-                        self.mediguns.insert(entity.entity_index.into(), EntityId::from(owner_id));
+                        self.mediguns
+                            .insert(entity.entity_index.into(), EntityId::from(owner_id));
                     }
                 }
                 _ => {}
@@ -820,28 +795,25 @@ impl GameDetailsAnalyser {
     }
 
     fn parse_user_info(&mut self, index: usize, text: Option<&str>, data: Option<Stream>) {
-        if
-            let Ok(Some(user_info)) = tf_demo_parser::demo::data::UserInfo::parse_from_string_table(
-                index as u16,
-                text,
-                data
-            )
+        if let Ok(Some(user_info)) =
+            tf_demo_parser::demo::data::UserInfo::parse_from_string_table(index as u16, text, data)
         {
             // Remember who this player entity belongs to.
             // If a player leaves and someone else joins,
             // the new player can get the EntityId previously
             // used by the player who left.
-            self.player_entities.insert(user_info.entity_id, user_info.player_info.user_id);
+            self.player_entities
+                .insert(user_info.entity_id, user_info.player_info.user_id);
 
             // Remember this user's name/steamID
-            let mut player = self.players
+            let mut player = self
+                .players
                 .entry(user_info.player_info.user_id)
                 .or_insert_with(Default::default);
 
             player.name = user_info.player_info.name;
-            player.steam_id = SteamID::from_steam3(
-                &user_info.player_info.steam_id
-            ).unwrap_or_default();
+            player.steam_id =
+                SteamID::from_steam3(&user_info.player_info.steam_id).unwrap_or_default();
             player.user_id = user_info.player_info.user_id;
         }
     }
@@ -866,8 +838,8 @@ impl GameDetailsAnalyser {
 
         use WeaponClass::*;
         if
-            // In POV demos, only record airshots performed by the local player.
-            (self.is_stv ||
+        // In POV demos, only record airshots performed by the local player.
+        (self.is_stv ||
                 self.player_entities.get(&self.local_entity_id) == Some(&attacker_id)) &&
             // Victim is currently blastjumping
             victim.has_cond(&PlayerCondition::TF_COND_BLASTJUMPING) &&
@@ -888,7 +860,7 @@ impl GameDetailsAnalyser {
                     attacker: self.player_snapshot(attacker_id),
                     victim: self.player_snapshot(victim_id),
                 },
-                tick
+                tick,
             );
         }
     }
@@ -971,7 +943,7 @@ impl GameDetailsAnalyser {
                         killer_name_override = Some("MONOCULUS!".into());
                     }
                 }
-                | TF_DMG_CUSTOM_MERASMUS_ZAP
+                TF_DMG_CUSTOM_MERASMUS_ZAP
                 | TF_DMG_CUSTOM_MERASMUS_GRENADE
                 | TF_DMG_CUSTOM_MERASMUS_DECAPITATION => {
                     if killer_id == 0 {
@@ -1010,9 +982,7 @@ impl GameDetailsAnalyser {
         self.add_highlight(
             Highlight::Kill {
                 killer: self.player_snapshot_with_name(killer_id, killer_name_override),
-                assister: maybe_assister_id.map(|assister_id| {
-                    self.player_snapshot(assister_id)
-                }),
+                assister: maybe_assister_id.map(|assister_id| self.player_snapshot(assister_id)),
                 victim: self.player_snapshot(victim_id),
                 weapon: event.weapon.to_string(),
                 kill_icon: kill_icon.to_string(),
@@ -1020,7 +990,7 @@ impl GameDetailsAnalyser {
                 drop,
                 airshot,
             },
-            tick
+            tick,
         );
 
         if event.kill_streak_total > 0 && event.kill_streak_total % 5 == 0 {
@@ -1029,7 +999,7 @@ impl GameDetailsAnalyser {
                     player: self.player_snapshot(killer_id),
                     streak: event.kill_streak_total,
                 },
-                tick
+                tick,
             );
         }
 
@@ -1043,7 +1013,7 @@ impl GameDetailsAnalyser {
                             player: self.player_snapshot(assister_id),
                             streak: event.kill_streak_assist,
                         },
-                        tick
+                        tick,
                     );
                 }
             }
@@ -1056,7 +1026,7 @@ impl GameDetailsAnalyser {
                     victim: self.player_snapshot(victim_id),
                     streak: event.kill_streak_victim,
                 },
-                tick
+                tick,
             );
         }
     }
@@ -1077,7 +1047,7 @@ impl GameDetailsAnalyser {
                         healer: self.player_snapshot(UserId::from(event.healer as u16)),
                         target: self.player_snapshot(UserId::from(event.target as u16)),
                     },
-                    tick
+                    tick,
                 );
             }
         }
@@ -1094,7 +1064,7 @@ impl GameDetailsAnalyser {
     fn handle_round_stalemate_event(
         &mut self,
         _event: &TeamPlayRoundStalemateEvent,
-        tick: DemoTick
+        tick: DemoTick,
     ) {
         self.current_round += 1; // yuck
         self.add_highlight(Highlight::RoundStalemate, tick)
@@ -1127,7 +1097,7 @@ impl GameDetailsAnalyser {
                 capturing_team: event.team,
                 cappers,
             },
-            tick
+            tick,
         );
     }
 
@@ -1136,7 +1106,7 @@ impl GameDetailsAnalyser {
             Highlight::PlayerConnected {
                 user_id: UserId::from(event.user_id),
             },
-            tick
+            tick,
         );
     }
 
@@ -1146,7 +1116,7 @@ impl GameDetailsAnalyser {
                 user_id: UserId::from(event.user_id),
                 reason: event.reason.to_string(),
             },
-            tick
+            tick,
         );
     }
 
@@ -1161,27 +1131,25 @@ impl GameDetailsAnalyser {
     fn player_snapshot_with_name(
         &self,
         user_id: UserId,
-        name_override: Option<String>
+        name_override: Option<String>,
     ) -> HighlightPlayerSnapshot {
         match self.players.get(&user_id) {
-            Some(player) => {
-                HighlightPlayerSnapshot {
-                    user_id: player.user_id,
-                    name: name_override.unwrap_or_else(|| player.name.clone()),
-                    team: player.team,
-                }
-            }
+            Some(player) => HighlightPlayerSnapshot {
+                user_id: player.user_id,
+                name: name_override.unwrap_or_else(|| player.name.clone()),
+                team: player.team,
+            },
             None => {
                 // Most likely UserId(0)
                 HighlightPlayerSnapshot {
                     user_id,
-                    name: name_override.unwrap_or_else(|| (
+                    name: name_override.unwrap_or_else(|| {
                         if user_id == 0 {
                             "WORLD".to_string()
                         } else {
                             "<unknown>".to_string()
                         }
-                    )),
+                    }),
                     team: Team::Other,
                 }
             }
@@ -1203,7 +1171,7 @@ fn test_parser() {
     let demo = tf_demo_parser::Demo::new(&file);
     let parser = tf_demo_parser::DemoParser::new_all_with_analyser(
         demo.get_stream(),
-        GameDetailsAnalyser::default()
+        GameDetailsAnalyser::default(),
     );
     let (header, state) = parser.parse().expect("Parsing failed");
     println!("HEADER: {header:#?}\nSTATE: {state:#?}");

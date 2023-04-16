@@ -1,4 +1,4 @@
-use num_derive::{ FromPrimitive, ToPrimitive };
+use num_derive::{FromPrimitive, ToPrimitive};
 
 #[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive)]
 #[allow(non_camel_case_types)]
@@ -35,10 +35,4 @@ pub enum PlayerFlag {
     FL_DISSOLVING,
     FL_TRANSRAGDOLL,
     FL_UNBLOCKABLE_BY_PLAYER,
-}
-
-impl PlayerFlag {
-    pub const fn bitmask(&self) -> u32 {
-        1 << (*self as u32)
-    }
 }
